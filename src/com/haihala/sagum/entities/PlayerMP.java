@@ -26,4 +26,9 @@ public class PlayerMP extends Player {
     public void tick() {
         super.tick();
     }
+
+
+    public String printString(){
+        return super.printString() + " ip:"+this.ipAddress + " port"+this.port;
+    }
 }

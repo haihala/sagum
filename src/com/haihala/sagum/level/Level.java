@@ -8,6 +8,7 @@ import java.util.List;
 
 import javax.imageio.ImageIO;
 
+import com.haihala.sagum.Game;
 import com.haihala.sagum.entities.Entity;
 import com.haihala.sagum.entities.PlayerMP;
 import com.haihala.sagum.gfx.Screen;
@@ -152,14 +153,19 @@ public class Level {
     private int getPlayerMPIndex(String username) {
         int index = 0;
         for (Entity e : getEntities()) {
-            if (e instanceof PlayerMP && ((PlayerMP) e).getUsername().equals(username)) {
-                break;
+            if (e instanceof PlayerMP) {
+                System.out.println("1");
+                if (((PlayerMP) e).getUsername().equals(username)) {
+                    System.out.println("2" + e.printString());
+                    break;
+                }else {
+                    Game.game.debug(Game.DebugLevel.SEVERE, "wololoo");
+                }
             }
             index++;
         }
         return index;
     }
-
     public synchronized void movePlayer(String username, int x, int y, int numSteps, boolean isMoving, int movingDir) {
         int index = getPlayerMPIndex(username);
         PlayerMP player = (PlayerMP) this.getEntities().get(index);

@@ -87,13 +87,20 @@ public class Game extends Canvas implements Runnable {
 
         thread = new Thread(this, NAME + "_main");
         thread.start();
+        String ip;
         if (!isApplet) {
             if (JOptionPane.showConfirmDialog(this, "Do you want to run the server") == 0) {
                 socketServer = new GameServer(this);
                 socketServer.start();
+                ip = "localhost";
+            }else {
+                ip = JOptionPane.showInputDialog(this, "please enter the ip address of desired server(empty for localhost)");
+                if (ip.trim().isEmpty() || ip == null){
+                    ip = "localhost";
+                }
             }
 
-            socketClient = new GameClient(this, "localhost");
+            socketClient = new GameClient(this, ip);
             socketClient.start();
         }
     }

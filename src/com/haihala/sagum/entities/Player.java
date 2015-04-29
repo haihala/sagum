@@ -109,6 +109,11 @@ public class Player extends Mob {
         }
     }
 
+    @Override
+    public String printString() {
+        return "username: " + this.username + " x:" + this.x + " y:" + this.y;
+    }
+
     public boolean hasCollided(int xa, int ya) {
         int xMin = 0;
         int xMax = 7;
