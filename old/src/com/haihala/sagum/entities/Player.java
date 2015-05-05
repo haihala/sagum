@@ -7,6 +7,7 @@ import com.haihala.sagum.gfx.Font;
 import com.haihala.sagum.gfx.Screen;
 import com.haihala.sagum.level.Level;
 import com.haihala.sagum.net.packets.Packet02Move;
+import com.haihala.sagum.net.packets.Packet03Die;
 
 public class Player extends Mob {
 
@@ -18,12 +19,16 @@ public class Player extends Mob {
     private String username;
 
     public Player(Level level, int x, int y, InputHandler input, String username) {
-        super(level, "Player", x, y, 1);
+        super(level, "Player", x, y, 1, 5);
         this.input = input;
         this.username = username;
     }
 
     public void tick() {
+        if (this.health <= 0){
+            Packet03Die packet = new Packet03Die(this.username, this.x, this.y);
+            packet.writeData(Game.game.socketClient);
+        }
         int xa = 0;
         int ya = 0;
         if (input != null) {

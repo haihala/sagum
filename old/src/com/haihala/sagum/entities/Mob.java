@@ -11,9 +11,11 @@ public abstract class Mob extends Entity {
     protected boolean isMoving;
     protected int movingDir = 1;
     protected int scale = 1;
+    protected int health;
 
-    public Mob(Level level, String name, int x, int y, int speed) {
+    public Mob(Level level, String name, int x, int y, int speed, int health) {
         super(level);
+        this.health = health;
         this.name = name;
         this.x = x;
         this.y = y;
@@ -21,6 +23,7 @@ public abstract class Mob extends Entity {
     }
 
     public void move(int xa, int ya) {
+        this.health--;
         if (xa != 0 && ya != 0) {
             move(xa, 0);
             move(0, ya);

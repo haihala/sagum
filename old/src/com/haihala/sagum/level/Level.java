@@ -51,7 +51,8 @@ public class Level {
         int[] tileColours = this.image.getRGB(0, 0, width, height, null, 0, width);
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                tileCheck: for (Tile t : Tile.tiles) {
+                tileCheck:
+                for (Tile t : Tile.tiles) {
                     if (t != null && t.getLevelColour() == tileColours[x + y * width]) {
                         this.tiles[x + y * width] = t.getId();
                         break tileCheck;
@@ -154,18 +155,15 @@ public class Level {
         int index = 0;
         for (Entity e : getEntities()) {
             if (e instanceof PlayerMP) {
-                System.out.println("1");
                 if (((PlayerMP) e).getUsername().equals(username)) {
-                    System.out.println("2" + e.printString());
                     break;
-                }else {
-                    Game.game.debug(Game.DebugLevel.SEVERE, "wololoo");
                 }
+                index++;
             }
-            index++;
         }
         return index;
     }
+
     public synchronized void movePlayer(String username, int x, int y, int numSteps, boolean isMoving, int movingDir) {
         int index = getPlayerMPIndex(username);
         PlayerMP player = (PlayerMP) this.getEntities().get(index);

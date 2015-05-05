@@ -68,6 +68,10 @@ public class GameServer extends Thread {
         case MOVE:
             packet = new Packet02Move(data);
             this.handleMove(((Packet02Move) packet));
+            break;
+        case DIE:
+            System.out.println("die triggered on server");
+            break;
         }
     }
 
