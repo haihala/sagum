@@ -1,5 +1,9 @@
+
+
+"""
 import socket
 import sys
+from game import *
 
 socket.setdefaulttimeout(0.05)
 
@@ -18,7 +22,18 @@ s.sendto(MESSAGE, (UDP_IP, TO_SERVER_PORT))
 r = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
 r.bind((UDP_IP, FROM_SERVER_PORT))
 
-print "Ready to play!"
+game = Game()
+game.setup()
+game.daemon = True
+game.start()
+
+time.sleep(0.01)
+while 1:
+    time.sleep(0.1)
+    if game.end == True:
+        print "stop"
+        game.join()
+        sys.exit()
 
 while 1:
     try:
@@ -31,3 +46,4 @@ while 1:
     if (data == "pong"):
         print "sending back ping"
         s.sendto("ping", (addr[0], TO_SERVER_PORT))
+"""
