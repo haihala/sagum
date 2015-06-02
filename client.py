@@ -1,49 +1,71 @@
+import pygame
+import math
+from player import *
 
+x = pygame.init()
+if not x == (6, 0):
+    print "Failed pygame init"
+    sys.exit(1)
 
-"""
-import socket
-import sys
-from game import *
+settings = []
+o = open("cs.txt", "r")
+o = o.read().split("\n")
+for i in o:
+    if len(i) > 0 and not i[0] == "#":
+        i = i.split()
+        i = map(int, i)
+        i = tuple(i)
+        settings.append(i)
+print settings
 
-socket.setdefaulttimeout(0.05)
+ns = math.sqrt(settings[0][0]**2 + settings[0][1]**2)/200
 
-try:
-    UDP_IP = sys.argv[1]
-except IndexError:
-    UDP_IP = "127.0.0.1"
+gameDisplay = pygame.display.set_mode(settings[0])
+pygame.display.set_caption("The game")
 
-TO_SERVER_PORT = 9001
-FROM_SERVER_PORT = 9002
-MESSAGE = "ping"
+gameExit = False
 
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-s.sendto(MESSAGE, (UDP_IP, TO_SERVER_PORT))
+p = Player("", "127.0.0.1", 10, 10)
 
-r = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-r.bind((UDP_IP, FROM_SERVER_PORT))
+clock = pygame.time.Clock()
 
-game = Game()
-game.setup()
-game.daemon = True
-game.start()
+while not gameExit:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            gameExit = True
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                p.speed[0] -= ns
+            if event.key == pygame.K_RIGHT:
+                p.speed[0] += ns
+            if event.key == pygame.K_UP:
+                p.speed[1] -= ns
+            if event.key == pygame.K_DOWN:
+                p.speed[1] += ns
+        elif event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                p.speed[0] += ns
+            if event.key == pygame.K_RIGHT:
+                p.speed[0] -= ns
+            if event.key == pygame.K_UP:
+                p.speed[1] += ns
+            if event.key == pygame.K_DOWN:
+                p.speed[1] -= ns
 
-time.sleep(0.01)
-while 1:
-    time.sleep(0.1)
-    if game.end == True:
-        print "stop"
-        game.join()
-        sys.exit()
+    if math.sqrt(p.speed[0]**2+p.speed[1]**2) > ns:
+        move = int(math.floor(math.sqrt(1.0/2)*ns))
+    else:
+        move = ns
+    if p.x + p.speed[0] > 0 and p.x + p.speed[0] < settings[0][0] - p.size and not p.speed[0] == 0:
+        p.x += math.copysign(1, p.speed[0]) * move
+    if p.y + p.speed[1] > 0 and p.y + p.speed[1] < settings[0][0] - p.size and not p.speed[1] == 0:
+        p.y += math.copysign(1, p.speed[1]) * move
 
-while 1:
-    try:
-        data, addr = r.recvfrom(1024) # buffer size is 1024 bytes
-    except socket.timeout:
-        data = ""
-    if data != "":
-        print "received message:", data, " from:", addr
+    gameDisplay.fill((255, 255, 255))
+    pygame.draw.rect(gameDisplay, (0, 0, 0), [p.x, p.y, p.size, p.size])
+    pygame.display.update()
 
-    if (data == "pong"):
-        print "sending back ping"
-        s.sendto("ping", (addr[0], TO_SERVER_PORT))
-"""
+    clock.tick(60)
+
+pygame.quit()
+quit()
