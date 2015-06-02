@@ -3,12 +3,15 @@ import ctypes
 import sys
 import time
 import threading
-import player
+import mplayer
+import pygame
 
 
 entities = [] # a list containing all the entities currently in the game.
 players = []  # -"- players in the game
 socket.setdefaulttimeout(0.05)
+s = ""
+r = ""
 
 def start():
     """Called at startup. Initializes everything"""
@@ -27,7 +30,8 @@ def start():
     global consoleThread
     consoleThread.daemon = True
     consoleThread.start()
-    tell("Started to knit and started a new thread with console handeling.")
+
+    tell("Started to knit and started new threads for console handeling and interwebbing.")
 
     tell("Preparing to run like Usain Bolt.")
     runLoop()
@@ -58,23 +62,56 @@ def runLoop():
 
 def tick():
     """One update that is supposed to make the game go forwards. Happens about 20 times per second"""
-    for i in range(100000): # test loop to find out what can a normal pc do in 1/20 s.
-        a = 100000**100000
+    global r
+    global s
+    global players
+    clock = pygame.time.Clock()
+    while 1:
+        try:
+            data, addr = r.recvfrom(1024)
+            data = data.split()
+            if data[0] == "login":
+                tell(data[1] + " has just joined our lovely little session")
+                print data[1], addr, data[2], data[3]
+                players.append(mplayer.MPlayer(data[1], addr[0], data[2], data[3]))
+                tell("currently playing: ")
+                tell(players)
+                sendAll("server " + data[1] + " has just joined our lovely little session")
+            elif data[0] == "move":
+                for p in players:
+                    if p.addr == addr[0]:
+                        p.x = data[1]
+                        p.y = data[2]
+            elif data[0] == "leave":
+                for i in players:
+                    if p.addr = addr[0]:
+                        players.remove(p)
+
+        except socket.timeout:
+            pass
+
+        for p in players:
+            sendAll(p)
+        clock.tick(20)
 
 def tell(message):
     """A nicer print, determines the module printing the message."""
+    global players
+    if message == players:
+        for i in players:
+            print i.name
+        return
     subject = "Server"
     if __name__ != "__main__":
         subject = __name__
     print "[" + subject + "]", message
-    sendAll("[" + subject + "]" + message)
 
 def sendAll(msg):
     """Send message to all clients."""
     global players
     global s
     for p in players:
-        s.sendto("msg", p.ip)
+        s.sendto("msg", (p.addr, 9002))
 
 def generateEntities():
     """Fill server entities list with items, players, mobs, etc."""
@@ -89,7 +126,7 @@ def consolehandler():
         if (kill):
             break
 
-        inp = raw_input(">")
+        inp = raw_input()
         inp = inp.lower()
         inp = inp.split()
         i = inp[0][0]
@@ -97,9 +134,10 @@ def consolehandler():
             tell("Help is on its way, just hold on!")
         elif i == "q":
             tell("Are you sure you want to quit? (y/n)")
-            if (raw_input(">")[0].lower() == "y"):
+            if (raw_input()[0].lower() == "y"):
                 tell("Shutting down...")
                 kill = True
+
 
 if __name__ == "__main__":
     if(ctypes.windll.shell32.IsUserAnAdmin()==0):
@@ -113,42 +151,3 @@ if __name__ == "__main__":
 
     kill = False
     start()
-
-"""
-import socket
-import ctypes
-import sys
-import time
-
-
-socket.setdefaulttimeout(0.05)
-if(ctypes.windll.shell32.IsUserAnAdmin()==1):
-    print "User is very supery"
-else:
-    print "User is a puny mortal"
-
-try:
-    UDP_IP = sys.argv[1]
-except:
-    UDP_IP = "127.0.0.1"
-FROM_CLIENT_PORT = 9001
-TO_CLIENT_PORT = 9002
-
-r = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-r.bind((UDP_IP, FROM_CLIENT_PORT))
-
-s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # UDP
-print "Ready to play!"
-
-while 1:
-    try:
-        data, addr = r.recvfrom(1024) # buffer size is 1024 bytes
-    except socket.timeout:
-        data = ""
-    if data != "":
-        print "received message:", data, " from:", addr
-
-    if (data == "ping"):
-        print "sending back pong!"
-        s.sendto("pong", (addr[0], TO_CLIENT_PORT))
-"""

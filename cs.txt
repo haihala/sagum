@@ -1,4 +1,0 @@
-# Program will ignore lines with # as the 1st character
-
-# Windowsize 2 numbers separate with space
-800 800

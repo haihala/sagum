@@ -1,0 +1,10 @@
+# Program will ignore lines with # as the 1st character. This is a placeholder for gui. Order of the options does not matter but everything must be present.
+
+# Windowsize is 2 numbers separate with space, start line with 'S'
+S 800 800
+
+# ip is an ip address without port, start line with 'I'
+I 127.0.0.1
+
+# Username is a single word with any normal characters, start line with 'U'
+U Revol

@@ -14,3 +14,6 @@ hs_err_pid*
 # Idea editor folder (both linux and windows)
 .idea/
 .idea\\
+
+# Python compiled
+*.pyc
