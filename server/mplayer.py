@@ -7,7 +7,7 @@ class MPlayer:
         self.y = y
 
     def __repr__(self):
-        return self.name + " " + self.x + " " + self.y + " " + self.health
+        return self.name + " " + str(self.x) + " " + str(self.y) + " " + str(self.health)
 
     def __str__(self):
-        return __repr__
+        return self.__repr__()

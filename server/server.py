@@ -84,14 +84,14 @@ def tick():
                         p.y = data[2]
             elif data[0] == "leave":
                 for i in players:
-                    if p.addr = addr[0]:
+                    if p.addr == addr[0]:
                         players.remove(p)
 
         except socket.timeout:
             pass
 
         for p in players:
-            sendAll(p)
+            sendAll(str(p))
         clock.tick(20)
 
 def tell(message):
@@ -111,7 +111,7 @@ def sendAll(msg):
     global players
     global s
     for p in players:
-        s.sendto("msg", (p.addr, 9002))
+        s.sendto(msg, (p.addr, 9002))
 
 def generateEntities():
     """Fill server entities list with items, players, mobs, etc."""
@@ -129,21 +129,26 @@ def consolehandler():
         inp = raw_input()
         inp = inp.lower()
         inp = inp.split()
-        i = inp[0][0]
-        if i == "h":
+        i = inp[0]
+        if i == "help":
             tell("Help is on its way, just hold on!")
-        elif i == "q":
+        elif i == "quit":
             tell("Are you sure you want to quit? (y/n)")
             if (raw_input()[0].lower() == "y"):
                 tell("Shutting down...")
                 kill = True
-
+        elif i == "playing":
+            tell("Currently on the server:")
+            global players
+            for p in players:
+                tell(p.name)
+        else:
+            tell("That is not a valid command, try 'help' to get assistance.")
 
 if __name__ == "__main__":
     if(ctypes.windll.shell32.IsUserAnAdmin()==0):
-        tell("Please restart your terminal/cmd/shell/bash as administrator")
+        tell("If you face trouble, please restart your terminal/cmd/shell/bash as administrator")
         tell("Puny mortal")
-        sys.exit(0)
     else:
         tell("User is very supery and quite administrative")
 
