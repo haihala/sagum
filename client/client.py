@@ -25,8 +25,14 @@ for i in o:
             settings["username"] = i[0]
 
 print settings
-ns = math.sqrt(settings["windowsize"][0]**2 + settings["windowsize"][1]**2)/200
+ns = 0.5  # Normal Speed
+mapsize = 10000
+screensize = 100
+ut = 0  # updatetimer used in printing update as a delay.
+swm = settings["windowsize"][0]/screensize  # screen width multiplier
+shm = settings["windowsize"][1]/screensize  # screen height multiplier
 
+print swm, shm
 gameDisplay = pygame.display.set_mode(settings["windowsize"])
 pygame.display.set_caption("The game")
 
@@ -68,20 +74,42 @@ while not gameExit:
                     p.speed[1] -= ns
 
         if math.sqrt(p.speed[0]**2+p.speed[1]**2) > ns:
-            move = int(math.floor(math.sqrt(1.0/2)*ns))
+            move = math.sqrt(1.0/2)*ns
         else:
             move = ns
-        if p.x + p.speed[0] > 0 and p.x + p.speed[0] < settings["windowsize"][0] - p.size and not p.speed[0] == 0:
-            p.x += math.copysign(1, p.speed[0]) * move
-        if p.y + p.speed[1] > 0 and p.y + p.speed[1] < settings["windowsize"][0] - p.size and not p.speed[1] == 0:
-            p.y += math.copysign(1, p.speed[1]) * move
+
+        if p.pos[0] + p.speed[0] > 0 and p.pos[0] + p.speed[0] < mapsize and not p.speed[0] == 0:
+            p.pos[0] += math.copysign(1, p.speed[0]) * move
+        if p.pos[1] + p.speed[1] > 0 and p.pos[1] + p.speed[1] < mapsize and not p.speed[1] == 0:
+            p.pos[1] += math.copysign(1, p.speed[1]) * move
+
+        if p.pos[0] >= screensize/2 and p.pos[0] <= mapsize - screensize/2:
+            p.drawpos[0] = settings["windowsize"][0]/2
+        else:
+            if p.pos[0] >= mapsize - screensize/2:
+                p.drawpos[0] = (p.pos[0] - (mapsize-screensize)) * swm
+            else:
+                p.drawpos[0] = p.pos[0] * swm
+
+        if p.pos[1] >= screensize/2 and p.pos[1] <= mapsize - screensize/2:
+            p.drawpos[1] = settings["windowsize"][1]/2
+        else:
+            if p.pos[1] >= mapsize - screensize/2:
+                p.drawpos[1] = (p.pos[1] - (mapsize-screensize)) * shm
+            else:
+                p.drawpos[1] = p.pos[1] * shm
 
         gameDisplay.fill((255, 255, 255))
-        pygame.draw.rect(gameDisplay, (0, 0, 0), [p.x, p.y, p.size, p.size])
+        pygame.draw.rect(gameDisplay, (0, 0, 0), [p.drawpos[0], p.drawpos[1], p.size, p.size])
         pygame.display.update()
+        s.sendto("update " + str(p.pos[0]) + " " + str(p.pos[1]) , (settings["ip"], 9001))
+        ut += 1
+        if ut == 60:
+            print p.pos, p.drawpos, p.speed
+            ut = 0
     except KeyboardInterrupt:
         gameExit = True
-        
+
     clock.tick(60)
 
 s.sendto("leave", (settings["ip"], 9001))

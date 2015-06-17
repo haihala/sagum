@@ -73,15 +73,15 @@ def tick():
             if data[0] == "login":
                 tell(data[1] + " has just joined our lovely little session")
                 print data[1], addr, data[2], data[3]
-                players.append(mplayer.MPlayer(data[1], addr[0], data[2], data[3]))
+                players.append(mplayer.MPlayer(data[1], addr[0], float(data[2]), float(data[3])))
                 tell("currently playing: ")
                 tell(players)
                 sendAll("server " + data[1] + " has just joined our lovely little session")
-            elif data[0] == "move":
+            elif data[0] == "update":
                 for p in players:
                     if p.addr == addr[0]:
-                        p.x = data[1]
-                        p.y = data[2]
+                        p.x = float(data[1])
+                        p.y = float(data[2])
             elif data[0] == "leave":
                 for i in players:
                     if p.addr == addr[0]:
@@ -92,7 +92,7 @@ def tick():
 
         for p in players:
             sendAll(str(p))
-        clock.tick(20)
+        clock.tick(60)
 
 def tell(message):
     """A nicer print, determines the module printing the message."""
@@ -138,10 +138,13 @@ def consolehandler():
                 tell("Shutting down...")
                 kill = True
         elif i == "playing":
-            tell("Currently on the server:")
             global players
-            for p in players:
-                tell(p.name)
+            if len(players) != 0:
+                tell("Currently on the server:")
+                for p in players:
+                    tell(p.name + " @"+str(int(round(p.x/1.0)))+", "+str(int(round(p.y/1.0))))
+            else:
+                tell("Your server is empty, poor bastard.")
         else:
             tell("That is not a valid command, try 'help' to get assistance.")
 
