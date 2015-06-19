@@ -9,7 +9,7 @@ import pygame
 
 entities = [] # a list containing all the entities currently in the game.
 players = []  # -"- players in the game
-socket.setdefaulttimeout(0.05)
+socket.setdefaulttimeout(0.016)
 s = ""
 r = ""
 
@@ -38,61 +38,48 @@ def start():
 
 def runLoop():
     """The main loop of the server. It is managing ticks and messaging. In case of a 'quit' command it shuts down the server."""
+    clock = pygame.time.Clock()
     global entities
     global players
-    lastsec = lasttick = time.time()
-    tickCount = 0
-    skipticks = 0
     tell("Running.")
     global kill
     while 1:
         if (kill):
-            sys.exit(2)
-
-        if lastsec + 1 <= time.time():
-            lastsec = time.time()
-            if (tickCount < 20):
-                tell("skipped " + str(20 - tickCount) + " ticks this second.")
-            tickCount = 0
-
-        if lasttick + 0.047 < time.time() and tickCount <= 20:
-            lasttick = time.time()
-            tickCount += 1
+            quit()
+        else:
             tick()
+        clock.tick(60)
 
 def tick():
     """One update that is supposed to make the game go forwards. Happens about 20 times per second"""
     global r
     global s
     global players
-    clock = pygame.time.Clock()
-    while 1:
-        try:
-            data, addr = r.recvfrom(1024)
-            data = data.split()
-            if data[0] == "login":
-                tell(data[1] + " has just joined our lovely little session")
-                print data[1], addr, data[2], data[3]
-                players.append(mplayer.MPlayer(data[1], addr[0], float(data[2]), float(data[3])))
-                tell("currently playing: ")
-                tell(players)
-                sendAll("server " + data[1] + " has just joined our lovely little session")
-            elif data[0] == "update":
-                for p in players:
-                    if p.addr == addr[0]:
-                        p.x = float(data[1])
-                        p.y = float(data[2])
-            elif data[0] == "leave":
-                for i in players:
-                    if p.addr == addr[0]:
-                        players.remove(p)
+    try:
+        data, addr = r.recvfrom(1024)
+        data = data.split()
+        if data[0] == "login":
+            tell(data[1] + " has just joined our lovely little session")
+            players.append(mplayer.MPlayer(data[1], addr[0], float(data[2]), float(data[3])))
+            tell("currently playing: ")
+            tell(players)
+            sendAll("server " + data[1] + " has just joined our lovely little session")
+        elif data[0] == "update":
+            for p in players:
+                if p.addr == addr[0]:
+                    p.x = float(data[1])
+                    p.y = float(data[2])
+        elif data[0] == "leave":
+            for p in players:
+                if p.addr == addr[0]:
+                    tell(p.name + " has just left the server.")
+                    players.remove(p)
 
-        except socket.timeout:
-            pass
+    except socket.timeout:
+        pass
 
-        for p in players:
-            sendAll(str(p))
-        clock.tick(60)
+    for p in players:
+        sendAll(str(players))
 
 def tell(message):
     """A nicer print, determines the module printing the message."""

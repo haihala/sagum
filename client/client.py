@@ -2,11 +2,37 @@ import pygame
 import math
 from player import *
 import socket
+import threading
 
 x = pygame.init()
 if not x == (6, 0):
     print "Failed pygame init"
     sys.exit(1)
+
+players = []
+
+def receiver():
+    rclock = pygame.time.Clock()
+    global players
+    while 1:
+        data, addr = r.recvfrom(1024)
+        if data.split()[0] == "map":
+            pass  # load the map of the server
+        else:
+            data = data[1:-1].split(",")
+            for p in players:
+                for i in data:
+                    if p.name == i[0]:
+                        p.pos = [i[1], i[2]]
+                        p.health = i[3]
+                        data.remove(i)
+                if len(data) == 0:
+                    break
+            if len(data) != 0:
+                for i in data:
+                    players.append(Player(i[0], i[1], i[2], i[3])
+        rclock.tick(60)
+
 
 settings = {}
 o = open("cs.txt", "r")
@@ -32,12 +58,11 @@ ut = 0  # updatetimer used in printing update as a delay.
 swm = settings["windowsize"][0]/screensize  # screen width multiplier
 shm = settings["windowsize"][1]/screensize  # screen height multiplier
 
-print swm, shm
 gameDisplay = pygame.display.set_mode(settings["windowsize"])
 pygame.display.set_caption("The game")
 
 gameExit = False  # When true, window closes
-p = Player(settings["username"], 10, 10)  # Normal player object
+p = Player(settings["username"], 10, 10, 100)  # Normal player object
 clock = pygame.time.Clock()
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Sending socket
@@ -48,6 +73,10 @@ r.bind(("127.0.0.1", 9002)) # Server is listening port 9001 and sending on 9002.
 loginpacket = "login " + str(p)
 print loginpacket
 s.sendto(loginpacket, (settings["ip"], 9001))
+
+rt = threading.Thread(target=receiver)  # receiverthread is responsible for picking up the packets servers throws at us.
+rt.daemon = True
+rt.start()
 
 while not gameExit:
     try:
@@ -98,18 +127,28 @@ while not gameExit:
                 p.drawpos[1] = (p.pos[1] - (mapsize-screensize)) * shm
             else:
                 p.drawpos[1] = p.pos[1] * shm
+        for i in players:
+            pass  # make players appear on screen correctly by modifying drawing position
+
 
         gameDisplay.fill((255, 255, 255))
         pygame.draw.rect(gameDisplay, (0, 0, 0), [p.drawpos[0], p.drawpos[1], p.size, p.size])
+        for i in players:
+            pygame.draw.rect(gameDisplay, (0, 0, 0), [i.drawpos[0], i.drawpos[1], i.size, i.size])
+
         pygame.display.update()
         s.sendto("update " + str(p.pos[0]) + " " + str(p.pos[1]) , (settings["ip"], 9001))
+        """
         ut += 1
         if ut == 60:
             print p.pos, p.drawpos, p.speed
             ut = 0
+        """
     except KeyboardInterrupt:
         gameExit = True
-
+    except Exception as e:
+        print e
+        gameExit = True
     clock.tick(60)
 
 s.sendto("leave", (settings["ip"], 9001))
