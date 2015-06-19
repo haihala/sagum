@@ -30,7 +30,12 @@ def receiver():
                     break
             if len(data) != 0:
                 for i in data:
-                    players.append(Player(i[0], i[1], i[2], i[3])
+                    if i.split()[0] == settings["username"]:
+                        data.remove(i)
+                    elif i[0] == "[":
+                        print i
+                    else:
+                        players.append(Player(i[0], i[1], i[2], i[3]))
         rclock.tick(60)
 
 
@@ -71,7 +76,6 @@ r = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Receiving socket socket
 r.bind(("127.0.0.1", 9002)) # Server is listening port 9001 and sending on 9002. Ip is localhost for obvious reasons.
 
 loginpacket = "login " + str(p)
-print loginpacket
 s.sendto(loginpacket, (settings["ip"], 9001))
 
 rt = threading.Thread(target=receiver)  # receiverthread is responsible for picking up the packets servers throws at us.
@@ -134,7 +138,7 @@ while not gameExit:
         gameDisplay.fill((255, 255, 255))
         pygame.draw.rect(gameDisplay, (0, 0, 0), [p.drawpos[0], p.drawpos[1], p.size, p.size])
         for i in players:
-            pygame.draw.rect(gameDisplay, (0, 0, 0), [i.drawpos[0], i.drawpos[1], i.size, i.size])
+            pygame.draw.rect(gameDisplay, (0, 0, 0), [5, 5, 10, 10])
 
         pygame.display.update()
         s.sendto("update " + str(p.pos[0]) + " " + str(p.pos[1]) , (settings["ip"], 9001))
@@ -146,9 +150,11 @@ while not gameExit:
         """
     except KeyboardInterrupt:
         gameExit = True
+    """
     except Exception as e:
         print e
         gameExit = True
+    """
     clock.tick(60)
 
 s.sendto("leave", (settings["ip"], 9001))

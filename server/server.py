@@ -63,7 +63,7 @@ def tick():
             players.append(mplayer.MPlayer(data[1], addr[0], float(data[2]), float(data[3])))
             tell("currently playing: ")
             tell(players)
-            sendAll("server " + data[1] + " has just joined our lovely little session")
+            sendAll("[[server] " + data[1] + " has just joined our lovely little session]")
         elif data[0] == "update":
             for p in players:
                 if p.addr == addr[0]:
