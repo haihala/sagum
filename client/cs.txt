@@ -8,3 +8,6 @@ I 127.0.0.1
 
 # Username is a single word with any normal characters, start line with 'U'
 U Revol
+
+# Map defaults to the only map there is so far, Sg_def
+M Sg_def.map

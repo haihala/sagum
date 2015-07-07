@@ -17,3 +17,6 @@ hs_err_pid*
 
 # Python compiled
 *.pyc
+
+# gimp files
+*.xcf
