@@ -5,6 +5,7 @@ import socket
 import threading
 import object
 from mapper import *
+from ui import *
 
 x = pygame.init()
 if not x == (6, 0):
@@ -53,9 +54,11 @@ for i in o:
         if j == "S":
             i = map(int, i)
             i = tuple(i)
-            settings["windowsize"] = i
+            settings["windowSize"] = i
         elif j == "I":
             settings["ip"] = i[0]
+        elif j == "C":
+            settings["uiColor"] = tuple(map(int, i))
         elif j == "U":
             settings["username"] = i[0]
         elif j == "M":
@@ -65,19 +68,20 @@ print settings
 players = []
 objects = loadMap(settings["map"])
 for o in objects: o.img = pygame.image.load("art/structures/"+o.img)
-serverMap = "Sg_def.map"
-ns = 30  # Normal Speed
+serverMap = "Sg_def.smap"
+ns = 3  # Normal Speed
 mapsize = 10000
 screensize = 400
 ut = 0  # updatetimer used in printing update as a delay.
-swm = settings["windowsize"][0]/screensize  # screen width multiplier
-shm = settings["windowsize"][1]/screensize  # screen height multiplier
+swm = settings["windowSize"][0]/screensize  # screen width multiplier
+shm = settings["windowSize"][1]/screensize  # screen height multiplier
 
-gameDisplay = pygame.display.set_mode(settings["windowsize"])
+gameDisplay = pygame.display.set_mode(settings["windowSize"])
 pygame.display.set_caption("Sagum")
 
 gameExit = False  # When true, window closes
 p = Player(settings["username"], 10, 10, 100)  # Normal player object
+ui = Ui(p, settings["windowSize"], settings["uiColor"])  # definition of ui, uses player stats
 clock = pygame.time.Clock()
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Sending socket
@@ -132,7 +136,7 @@ while not gameExit:
             p.pos[1] += math.copysign(1, p.speed[1]) * move
 
         if p.pos[0] >= screensize/2 and p.pos[0] <= mapsize - screensize/2:
-            p.drawpos[0] = settings["windowsize"][0]/2
+            p.drawpos[0] = settings["windowSize"][0]/2
         else:
             if p.pos[0] >= mapsize - screensize/2:
                 p.drawpos[0] = (p.pos[0] - (mapsize-screensize)) * swm
@@ -140,7 +144,7 @@ while not gameExit:
                 p.drawpos[0] = p.pos[0] * swm
 
         if p.pos[1] >= screensize/2 and p.pos[1] <= mapsize - screensize/2:
-            p.drawpos[1] = settings["windowsize"][1]/2
+            p.drawpos[1] = settings["windowSize"][1]/2
         else:
             if p.pos[1] >= mapsize - screensize/2:
                 p.drawpos[1] = (p.pos[1] - (mapsize-screensize)) * shm
@@ -154,15 +158,17 @@ while not gameExit:
         hsc = screensize / 2  # screen sized
 
         for i in players:
-            print "drawing players"
             pygame.draw.rect(gameDisplay, (0, 0, 0), [i.drawpos[0], i.drawpos[1], i.size, i.size])
 
         for i in objects:
-            print "drawing object"
             gameDisplay.blit(i.img, (i.pos[0] + hsc - max(p.pos[0], hsc), i.pos[1] + hsc - max(p.pos[1], hsc)))
 
         pygame.draw.rect(gameDisplay, (0, 0, 0), [p.drawpos[0], p.drawpos[1], p.size, p.size])
+
+        ui.update({"health": str(p.health)})
+        ui.display(gameDisplay)
         pygame.display.update()
+
         s.sendto("update " + str(p.pos[0]) + " " + str(p.pos[1]) , (settings["ip"], 9001))
         """
         ut += 1

@@ -10,4 +10,7 @@ I 127.0.0.1
 U Revol
 
 # Map defaults to the only map there is so far, Sg_def
-M Sg_def.map
+M Sg_def.smap
+
+# Ui color is variable due to its simple nature. value is entered as rgb without parentheses.
+C 0 255 0
