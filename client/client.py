@@ -82,6 +82,8 @@ for o in objects:
 serverMap = "Sg_def.smap"
 ns = 3  # Normal Speed
 mapsize = 10000
+mapRect = Rect(0, 0, mapsize, mapsize)
+
 screensize = 400
 ut = 0  # updatetimer used in printing update as a delay.
 swm = settings["windowSize"][0]/screensize  # screen width multiplier
@@ -114,22 +116,22 @@ while not gameExit:
                 gameExit = True
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
-                    p.speed[0] -= ns
+                    p.speed[0] -= 1
                 if event.key == pygame.K_d:
-                    p.speed[0] += ns
+                    p.speed[0] += 1
                 if event.key == pygame.K_w:
-                    p.speed[1] -= ns
+                    p.speed[1] -= 1
                 if event.key == pygame.K_s:
-                    p.speed[1] += ns
+                    p.speed[1] += 1
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_a:
-                    p.speed[0] += ns
+                    p.speed[0] += 1
                 if event.key == pygame.K_d:
-                    p.speed[0] -= ns
+                    p.speed[0] -= 1
                 if event.key == pygame.K_w:
-                    p.speed[1] += ns
+                    p.speed[1] += 1
                 if event.key == pygame.K_s:
-                    p.speed[1] -= ns
+                    p.speed[1] -= 1
 
         if settings["map"] != serverMap:
             p.pos = [10, 10]
@@ -138,46 +140,41 @@ while not gameExit:
                 o.img = pygame.image.load("art/structures/"+o.img)
                 o.rect = Rect((o.pos[0]-o.img.get_size()[1]/2, o.pos[1]-o.img.get_size()[1]/2), o.img.get_size())
 
-        if math.sqrt(p.speed[0]**2+p.speed[1]**2) > ns and not p.pushed:
+        if math.sqrt(p.speed[0]**2+p.speed[1]**2) > 1 and not p.pushed:
             move = math.sqrt(1.0/2)*ns
         else:
             move = ns
 
-        if p.pos[0] + p.speed[0] > 0 and p.pos[0] + p.speed[0] < mapsize and not p.speed[0] == 0 and not collides(Rect((p.pos[0] + math.copysign(1, p.speed[0]) * move, p.pos[1]), p.rect.size)):
-            p.pos[0] += math.copysign(1, p.speed[0]) * move
-        if p.pos[1] + p.speed[1] > 0 and p.pos[1] + p.speed[1] < mapsize and not p.speed[1] == 0 and not collides(Rect((p.pos[0], p.pos[1] + math.copysign(1, p.speed[1]) * move), p.rect.size)):
-            p.pos[1] += math.copysign(1, p.speed[1]) * move
+        newRect = False
+        if p.speed[0] != 0 and p.speed[1] != 0:
+            newRect = Rect((p.pos[0] + math.copysign(1, p.speed[0]) * move, p.pos[1] + math.copysign(1, p.speed[1]) * move), p.rect.size)
 
-        if p.pos[0] >= screensize/2 and p.pos[0] <= mapsize - screensize/2:
-            p.drawpos[0] = settings["windowSize"][0]/2
-        else:
-            if p.pos[0] >= mapsize - screensize/2:
-                p.drawpos[0] = (p.pos[0] - (mapsize-screensize)) * swm
-            else:
-                p.drawpos[0] = p.pos[0] * swm
+        elif p.speed[0] != 0:
+            newRect = Rect((p.pos[0] + math.copysign(1, p.speed[0]) * move, p.pos[1]), p.rect.size)
 
-        if p.pos[1] >= screensize/2 and p.pos[1] <= mapsize - screensize/2:
-            p.drawpos[1] = settings["windowSize"][1]/2
-        else:
-            if p.pos[1] >= mapsize - screensize/2:
-                p.drawpos[1] = (p.pos[1] - (mapsize-screensize)) * shm
-            else:
-                p.drawpos[1] = p.pos[1] * shm
+        elif p.speed[1] != 0:
+            newRect = Rect((p.pos[0], p.pos[1] + math.copysign(1, p.speed[1]) * move), p.rect.size)
 
-        screenRect = pygame.Rect(0, 0, screensize, screensize)
+        if newRect:
+            if mapRect.colliderect(newRect) and not collides(newRect):
+                p.pos[0] = newRect.x
+                p.pos[1] = newRect.y
+
+
+        p.drawpos = (settings["windowSize"][0]/2, settings["windowSize"][1]/2)
 
         gradiant = math.sqrt(p.pos[0]**2 + p.pos[1]**2) / math.sqrt(2*mapsize**2)
-        gameDisplay.fill((39 * gradiant, 180 - (111 * gradiant), 19 * gradiant))  # at bottom right corner 39,69,19 at start 0, 200, 0
         hsc = screensize / 2  # half of screen size
+        gameDisplay.fill((0, 0, 0))
+        paintRect = Rect((mapRect.x - p.pos[0] + hsc, mapRect.y - p.pos[1] + hsc), mapRect.size)
+        gameDisplay.fill((39 * gradiant, 180 - (111 * gradiant), 19 * gradiant), rect=paintRect)  # at bottom right corner 39,69,19 at start 0, 200, 0
         p.rect = pygame.rect.Rect(p.pos, (10, 10))
 
         for i in players:
             pygame.draw.rect(gameDisplay, (0, 0, 0), [i.drawpos[0], i.drawpos[1], i.size, i.size])
 
         for i in objects:
-            gameDisplay.blit(i.img, (i.pos[0] + hsc - max(p.pos[0], hsc), i.pos[1] + hsc - max(p.pos[1], hsc)))
-
-
+            gameDisplay.blit(i.img, (i.pos[0] + hsc - p.pos[0], i.pos[1] + hsc - p.pos[1]))
 
         pygame.draw.rect(gameDisplay, (0, 0, 0), [p.drawpos[0], p.drawpos[1], p.size, p.size])
 
@@ -186,12 +183,12 @@ while not gameExit:
         pygame.display.update()
 
         s.sendto("update " + str(p.pos[0]) + " " + str(p.pos[1]) , (settings["ip"], 9001))
-        """
+
         ut += 1
         if ut == 60:
-            print p.pos, p.drawpos, p.speed
+            print p.pos, p.speed
             ut = 0
-        """
+
     except KeyboardInterrupt:
         gameExit = True
     """
