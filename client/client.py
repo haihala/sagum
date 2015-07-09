@@ -1,3 +1,4 @@
+from pygame.rect import *
 import pygame
 import math
 from player import *
@@ -11,6 +12,14 @@ x = pygame.init()
 if not x == (6, 0):
     print "Failed pygame init"
     sys.exit(1)
+
+def collides(a):  # returns a boolean, if a collides with any object
+    global objects
+    for o in objects:
+        if a.colliderect(o.rect):
+            return True
+    return False
+
 
 def receiver():
     rclock = pygame.time.Clock()
@@ -67,7 +76,9 @@ for i in o:
 print settings
 players = []
 objects = loadMap(settings["map"])
-for o in objects: o.img = pygame.image.load("art/structures/"+o.img)
+for o in objects:
+    o.img = pygame.image.load("art/structures/"+o.img)
+    o.rect = Rect((o.pos[0]-o.img.get_size()[1]/2, o.pos[1]-o.img.get_size()[1]/2), o.img.get_size())
 serverMap = "Sg_def.smap"
 ns = 3  # Normal Speed
 mapsize = 10000
@@ -102,37 +113,39 @@ while not gameExit:
             if event.type == pygame.QUIT:
                 gameExit = True
             elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_a:
                     p.speed[0] -= ns
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_d:
                     p.speed[0] += ns
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_w:
                     p.speed[1] -= ns
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_s:
                     p.speed[1] += ns
             elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT:
+                if event.key == pygame.K_a:
                     p.speed[0] += ns
-                if event.key == pygame.K_RIGHT:
+                if event.key == pygame.K_d:
                     p.speed[0] -= ns
-                if event.key == pygame.K_UP:
+                if event.key == pygame.K_w:
                     p.speed[1] += ns
-                if event.key == pygame.K_DOWN:
+                if event.key == pygame.K_s:
                     p.speed[1] -= ns
 
         if settings["map"] != serverMap:
             p.pos = [10, 10]
             objects = loadMap(settings["map"])
-            for o in objects: o.img = pygame.image.load("art/structures/"+o.img)
+            for o in objects:
+                o.img = pygame.image.load("art/structures/"+o.img)
+                o.rect = Rect((o.pos[0]-o.img.get_size()[1]/2, o.pos[1]-o.img.get_size()[1]/2), o.img.get_size())
 
-        if math.sqrt(p.speed[0]**2+p.speed[1]**2) > ns:
+        if math.sqrt(p.speed[0]**2+p.speed[1]**2) > ns and not p.pushed:
             move = math.sqrt(1.0/2)*ns
         else:
             move = ns
 
-        if p.pos[0] + p.speed[0] > 0 and p.pos[0] + p.speed[0] < mapsize and not p.speed[0] == 0:
+        if p.pos[0] + p.speed[0] > 0 and p.pos[0] + p.speed[0] < mapsize and not p.speed[0] == 0 and not collides(Rect((p.pos[0] + math.copysign(1, p.speed[0]) * move, p.pos[1]), p.rect.size)):
             p.pos[0] += math.copysign(1, p.speed[0]) * move
-        if p.pos[1] + p.speed[1] > 0 and p.pos[1] + p.speed[1] < mapsize and not p.speed[1] == 0:
+        if p.pos[1] + p.speed[1] > 0 and p.pos[1] + p.speed[1] < mapsize and not p.speed[1] == 0 and not collides(Rect((p.pos[0], p.pos[1] + math.copysign(1, p.speed[1]) * move), p.rect.size)):
             p.pos[1] += math.copysign(1, p.speed[1]) * move
 
         if p.pos[0] >= screensize/2 and p.pos[0] <= mapsize - screensize/2:
@@ -155,13 +168,16 @@ while not gameExit:
 
         gradiant = math.sqrt(p.pos[0]**2 + p.pos[1]**2) / math.sqrt(2*mapsize**2)
         gameDisplay.fill((39 * gradiant, 180 - (111 * gradiant), 19 * gradiant))  # at bottom right corner 39,69,19 at start 0, 200, 0
-        hsc = screensize / 2  # screen sized
+        hsc = screensize / 2  # half of screen size
+        p.rect = pygame.rect.Rect(p.pos, (10, 10))
 
         for i in players:
             pygame.draw.rect(gameDisplay, (0, 0, 0), [i.drawpos[0], i.drawpos[1], i.size, i.size])
 
         for i in objects:
             gameDisplay.blit(i.img, (i.pos[0] + hsc - max(p.pos[0], hsc), i.pos[1] + hsc - max(p.pos[1], hsc)))
+
+
 
         pygame.draw.rect(gameDisplay, (0, 0, 0), [p.drawpos[0], p.drawpos[1], p.size, p.size])
 

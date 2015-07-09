@@ -22,7 +22,7 @@ class Ui:
         self.size = size
 
         self.interfaces["health"] = Interface(str(self.player.health), self.color, self.ms, "health", self.size)
-        self.interfaces["target"] = Interface("No target system yet", self.color, self.ms, "target", self.size)
+        self.interfaces["target"] = Interface("No targets yet", self.color, self.ms, "target", self.size)
         self.interfaces["ammo"] = Interface("0 / 0", self.color, self.ms, "ammo", self.size)
 
     def display(self, surface):

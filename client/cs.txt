@@ -13,4 +13,4 @@ U Revol
 M Sg_def.smap
 
 # Ui color is variable due to its simple nature. value is entered as rgb without parentheses.
-C 0 255 0
+C 255 0 0
