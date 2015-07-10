@@ -166,7 +166,7 @@ while not gameExit:
         gradiant = math.sqrt(p.pos[0]**2 + p.pos[1]**2) / math.sqrt(2*mapsize**2)
         hsc = screensize / 2  # half of screen size
         gameDisplay.fill((0, 0, 0))
-        paintRect = Rect((mapRect.x - p.pos[0] + hsc, mapRect.y - p.pos[1] + hsc), mapRect.size)
+        paintRect = Rect((mapRect.x - p.pos[0] + screensize, mapRect.y - p.pos[1] + screensize), mapRect.size)
         gameDisplay.fill((39 * gradiant, 180 - (111 * gradiant), 19 * gradiant), rect=paintRect)  # at bottom right corner 39,69,19 at start 0, 200, 0
         p.rect = pygame.rect.Rect(p.pos, (10, 10))
 
@@ -186,7 +186,7 @@ while not gameExit:
 
         ut += 1
         if ut == 60:
-            print p.pos, p.speed
+            print p.pos, p.speed, clock.get_fps()
             ut = 0
 
     except KeyboardInterrupt:

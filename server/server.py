@@ -9,7 +9,8 @@ import pygame
 
 entities = [] # a list containing all the entities currently in the game.
 players = []  # -"- players in the game
-socket.setdefaulttimeout(0.016)
+commandsSec = 9 # amount of input the server can get in 1 second
+socket.setdefaulttimeout(1.0/(commandsSec*60))
 s = ""
 r = ""
 
@@ -49,14 +50,25 @@ def runLoop():
         else:
             tick()
         clock.tick(60)
+        print clock.get_fps()
 
 def tick():
     """One update that is supposed to make the game go forwards. Happens about 20 times per second"""
     global r
     global s
     global players
-    try:
-        data, addr = r.recvfrom(1024)
+    global commandsSec
+    commands = []
+    for i in range(commandsSec):
+        try:
+            data, addr = r.recvfrom(1024)
+            commands.append((data, addr))
+        except socket.timeout:
+            continue
+
+    for i in commands:
+        data = i[0]
+        addr = i[1]
         data = data.split()
         if data[0] == "login":
             tell(data[1] + " has just joined our lovely little session")
@@ -74,10 +86,6 @@ def tick():
                 if p.addr == addr[0]:
                     tell(p.name + " has just left the server.")
                     players.remove(p)
-
-    except socket.timeout:
-        pass
-
     for p in players:
         sendAll(str(players))
 
