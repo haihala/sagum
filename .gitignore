@@ -20,3 +20,6 @@ hs_err_pid*
 
 # gimp files
 *.xcf
+
+# Sagum maps
+*.smap
