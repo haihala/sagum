@@ -79,10 +79,6 @@ objects = loadMap(settings["map"])
 for o in objects:
     o.img = pygame.image.load("art/structures/"+o.img)
     o.rect = Rect(o.pos, o.img.get_size())
-    wd = 800 / settings["windowSize"][0]
-    hd = 800 / settings["windowSize"][1]
-    pygame.transform.scale(o.img, (o.img.get_width()*wd, o.img.get_height()*hd))
-
 serverMap = "Sg_def.smap"
 ns = 3  # Normal Speed
 mapsize = 10000
@@ -141,9 +137,6 @@ while not gameExit:
             for o in objects:
                 o.img = pygame.image.load("art/structures/"+o.img)
                 o.rect = Rect(o.pos, o.img.get_size())
-                wd = 800 / settings["windowSize"][0]
-                hd = 800 / settings["windowSize"][1]
-                pygame.transform.scale(o.img, (o.img.get_width()*wd, o.img.get_height()*hd))
 
         if math.sqrt(p.speed[0]**2+p.speed[1]**2) > 1 and not p.pushed:
             move = math.sqrt(1.0/2)*ns
@@ -176,7 +169,7 @@ while not gameExit:
         p.rect = pygame.rect.Rect(p.pos, (10, 10))
 
         for i in players:
-            pygame.draw.rect(gameDisplay, (0, 0, 0), [i.drawpos[0], i.drawpos[1], i.size, i.size])
+            pygame.draw.rect(gameDisplay, (0, 0, 0), [i.pos[0] - p.pos[0] + settings["windowSize"][0]/2, i.pos[1] - p.pos[0] + settings["windowSize"][0]/2, i.size, i.size])
 
         for i in objects:
             gameDisplay.blit(i.img, (i.pos[0] - p.pos[0] + settings["windowSize"][0]/2, i.pos[1] - p.pos[1] + settings["windowSize"][1]/2))
