@@ -6,7 +6,7 @@ import socket
 import threading
 import object
 from mapper import *
-from ui import *
+from hud import *
 
 x = pygame.init()
 if not x == (6, 0):
@@ -80,6 +80,7 @@ for o in objects:
     o.img = pygame.image.load("art/structures/"+o.img)
     o.rect = Rect(o.pos, o.img.get_size())
 serverMap = "Sg_def.smap"
+popups = []  # list of popups
 ns = 3  # Normal Speed
 mapsize = 10000
 mapRect = Rect(0, 0, mapsize, mapsize)
@@ -92,7 +93,7 @@ pygame.display.set_caption("Sagum")
 
 gameExit = False  # When true, window closes
 p = Player(settings["username"], 10, 10, 100)  # Normal player object
-ui = Ui(p, settings["windowSize"], settings["uiColor"])  # definition of ui, uses player stats
+ui = Ui(p, settings["windowSize"], settings["uiColor"], gameDisplay)  # definition of ui, uses player stats
 clock = pygame.time.Clock()
 
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) # Sending socket
@@ -107,6 +108,8 @@ rt = threading.Thread(target=receiver)  # receiverthread is responsible for pick
 rt.daemon = True
 rt.start()
 
+popups.append(Popup("Mui.", settings["windowSize"]))
+
 while not gameExit:
     try:
         for event in pygame.event.get():
@@ -115,21 +118,29 @@ while not gameExit:
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_a:
                     p.speed[0] -= 1
-                if event.key == pygame.K_d:
+                elif event.key == pygame.K_d:
                     p.speed[0] += 1
-                if event.key == pygame.K_w:
+                elif event.key == pygame.K_w:
                     p.speed[1] -= 1
-                if event.key == pygame.K_s:
+                elif event.key == pygame.K_s:
                     p.speed[1] += 1
             elif event.type == pygame.KEYUP:
                 if event.key == pygame.K_a:
                     p.speed[0] += 1
-                if event.key == pygame.K_d:
+                elif event.key == pygame.K_d:
                     p.speed[0] -= 1
-                if event.key == pygame.K_w:
+                elif event.key == pygame.K_w:
                     p.speed[1] += 1
-                if event.key == pygame.K_s:
+                elif event.key == pygame.K_s:
                     p.speed[1] -= 1
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    mpos = event.pos
+                    ctime = pygame.time.get_ticks()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                if ctime + 200 > pygame.time.get_ticks() and pygame.rect.Rect(mpos[0]-40, mpos[1]-40, 80, 80).collidepoint(event.pos):
+                    if pygame.rect.Rect(settings["windowSize"][0]/4, settings["windowSize"][1]/4, settings["windowSize"][0]/2, settings["windowSize"][1]/2).collidepoint(event.pos) and len(popups) != 0:
+                        popups.pop()
 
         if settings["map"] != serverMap:
             p.pos = [10, 10]
@@ -176,8 +187,12 @@ while not gameExit:
 
         pygame.draw.rect(gameDisplay, (0, 0, 0), [p.drawpos[0], p.drawpos[1], p.size, p.size])
 
+        for i in popups:
+            gameDisplay.blit(i.surface, i.pos)
+
         ui.update({"health": str(p.health)})
-        ui.display(gameDisplay)
+        ui.display()
+
         pygame.display.update()
 
         s.sendto("update " + str(p.pos[0]) + " " + str(p.pos[1]) , (settings["ip"], 9001))
