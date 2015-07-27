@@ -2,18 +2,18 @@ import pygame
 
 class Popup:
     def __init__(self, msg, size):
+        length = int((size[0]*2/3)/18)
+        msgl = []
+        msgl += list(msg[0+i:length+i] for i in range(0, len(msg), length))
         self.font = pygame.font.SysFont("monospace", 25)
         self.font.set_bold(True)
-        self.surface = pygame.Surface((size[0]/2, size[1]/2))
-        self.pos = (size[0]/4, size[1]/4)
+        self.surface = pygame.Surface((size[0]*2/3, size[1]*2/3))
+        self.pos = (size[0]/6, size[1]/6)
         self.surface.fill((205, 133, 63))
-        pygame.draw.rect(self.surface, (0, 0, 0), pygame.rect.Rect(0, 0, size[0]/2, size[1]/2), 2)
-        textSize = self.font.size(msg)
-        if textSize[0] < size[0]/2 and textSize[1] < size[1]/2:
-            text = self.font.render(msg, 1, (0, 0, 0))
-            self.surface.blit(text, (size[0]/4-textSize[0]/2, size[1]/4-textSize[1]/2))
-
-
+        pygame.draw.rect(self.surface, (0, 0, 0), pygame.rect.Rect(0, 0, size[0]*3/2, size[1]*3/2), 2)
+        for i in range(len(msgl)):
+            text = self.font.render(msgl[i], 1, (0, 0, 0))
+            self.surface.blit(text, (self.surface.get_size()[0]/2-self.font.size(msgl[i])[0]/2, 10 + i*30))
 
 class Interface:
     def __init__(self, content, color, font, pos, ss):

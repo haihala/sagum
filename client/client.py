@@ -108,39 +108,41 @@ rt = threading.Thread(target=receiver)  # receiverthread is responsible for pick
 rt.daemon = True
 rt.start()
 
-popups.append(Popup("Mui.", settings["windowSize"]))
+popups.append(Popup("Move with wasd and use mouse for other actions such as closing annoying and badly lined popups such as this.", settings["windowSize"]))
 
 while not gameExit:
     try:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gameExit = True
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_a:
-                    p.speed[0] -= 1
-                elif event.key == pygame.K_d:
-                    p.speed[0] += 1
-                elif event.key == pygame.K_w:
-                    p.speed[1] -= 1
-                elif event.key == pygame.K_s:
-                    p.speed[1] += 1
-            elif event.type == pygame.KEYUP:
-                if event.key == pygame.K_a:
-                    p.speed[0] += 1
-                elif event.key == pygame.K_d:
-                    p.speed[0] -= 1
-                elif event.key == pygame.K_w:
-                    p.speed[1] += 1
-                elif event.key == pygame.K_s:
-                    p.speed[1] -= 1
+            if popups == []:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_a:
+                        p.speed[0] -= 1
+                    elif event.key == pygame.K_d:
+                        p.speed[0] += 1
+                    elif event.key == pygame.K_w:
+                        p.speed[1] -= 1
+                    elif event.key == pygame.K_s:
+                        p.speed[1] += 1
+                elif event.type == pygame.KEYUP:
+                    if event.key == pygame.K_a:
+                        p.speed[0] += 1
+                    elif event.key == pygame.K_d:
+                        p.speed[0] -= 1
+                    elif event.key == pygame.K_w:
+                        p.speed[1] += 1
+                    elif event.key == pygame.K_s:
+                        p.speed[1] -= 1
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mpos = event.pos
                     ctime = pygame.time.get_ticks()
             elif event.type == pygame.MOUSEBUTTONUP:
                 if ctime + 200 > pygame.time.get_ticks() and pygame.rect.Rect(mpos[0]-40, mpos[1]-40, 80, 80).collidepoint(event.pos):
-                    if pygame.rect.Rect(settings["windowSize"][0]/4, settings["windowSize"][1]/4, settings["windowSize"][0]/2, settings["windowSize"][1]/2).collidepoint(event.pos) and len(popups) != 0:
+                    if pygame.rect.Rect(settings["windowSize"][0]/6, settings["windowSize"][1]/6, settings["windowSize"][0]*2/3, settings["windowSize"][1]*2/3).collidepoint(event.pos) and len(popups) != 0 and str(popups[-1].__class__) == "hud.Popup":
                         popups.pop()
+
 
         if settings["map"] != serverMap:
             p.pos = [10, 10]
@@ -170,8 +172,6 @@ while not gameExit:
                 p.pos[1] = newRect.y
 
 
-        p.drawpos = (settings["windowSize"][0]/2, settings["windowSize"][1]/2)
-
         gradiant = math.sqrt(p.pos[0]**2 + p.pos[1]**2) / math.sqrt(2*mapsize**2)
         hsc = screensize / 2  # half of screen size
         gameDisplay.fill((0, 0, 0))
@@ -185,7 +185,19 @@ while not gameExit:
         for i in objects:
             gameDisplay.blit(i.img, (i.pos[0] - p.pos[0] + settings["windowSize"][0]/2, i.pos[1] - p.pos[1] + settings["windowSize"][1]/2))
 
-        pygame.draw.rect(gameDisplay, (0, 0, 0), [p.drawpos[0], p.drawpos[1], p.size, p.size])
+
+        barrelPoint = list(pygame.mouse.get_pos())  #point of cursor
+        for i in range(2):
+            barrelPoint[i] -= settings["windowSize"][i]/2
+
+        bpl = math.sqrt(barrelPoint[0]**2 + barrelPoint[1]**2)#distance to the point of cursor
+
+        for i in range(2):
+            barrelPoint[i] *= 15/max(bpl, 1e-100)
+            barrelPoint[i] += settings["windowSize"][i]/2
+
+        pygame.draw.circle(gameDisplay, (0, 0, 100), [settings["windowSize"][0]/2, settings["windowSize"][1]/2], p.size)
+        pygame.draw.line(gameDisplay, (0, 0, 100), (settings["windowSize"][0]/2, settings["windowSize"][1]/2), barrelPoint, 5)
 
         for i in popups:
             gameDisplay.blit(i.surface, i.pos)
